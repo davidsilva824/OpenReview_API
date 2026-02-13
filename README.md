@@ -1,6 +1,6 @@
 OpenReview_API
 
-This a method to add the columns 'modality' and 'areas_and_methods' to the export from the submission status in OpenReview. 
+This a method to add the columns 'modality' and 'areas_and_methods' to the export from the "submission status" area in OpenReview. 
 
 Instructions: 
 
