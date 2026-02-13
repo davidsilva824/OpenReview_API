@@ -1,3 +1,5 @@
+# pip install openreview-py
+
 import openreview
 from urllib.parse import urlparse, parse_qs
 
