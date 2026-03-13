@@ -8,4 +8,4 @@ Instructions:
 
 2 - Upload the updated 'WoProc 2026 Submission Status.csv' to the work environment. 
 
-3 - Run 'complete_export_file.py' after inserting your login information in OpenReview. 
+3 - Run 'add_modality_areas_methods_reviews.py' after inserting your login information from OpenReview in the initial code. 
