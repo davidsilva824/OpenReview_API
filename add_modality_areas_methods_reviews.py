@@ -1,5 +1,6 @@
 # pip install openreview-py
 
+
 import openreview
 from urllib.parse import urlparse, parse_qs
 
@@ -9,6 +10,8 @@ client = openreview.api.OpenReviewClient(
     username="EMAIL",
     password="PASSWORD"
 )
+
+venue_id = "WoProc/2026/Conference"
 
 in_csv = "WoProc 2026 Submission Status.csv"
 out_csv = "WoProc 2026 Submission Status (modality + areas_and_methods + reviews).csv"
@@ -28,10 +31,19 @@ def content_value(content, key):
     v = content.get(key, {})
     return v.get("value", "") if isinstance(v, dict) else v
 
-def first_signature(note):
+# mapping reviwer codes to their names.  
+submission_groups = client.get_all_groups(prefix=f"{venue_id}/Submission")
+reviewerID_to_profileID = {
+    g.id.split("/")[-1]: (g.members[0] if getattr(g, "members", None) else "")
+    for g in submission_groups
+    if "/Reviewer_" in g.id
+}
+
+def reviewer_profile_id_from_review(note):
     sigs = getattr(note, "signatures", None)
     if isinstance(sigs, list) and len(sigs) > 0:
-        return sigs[0].split("/")[-1]
+        anon = sigs[0].split("/")[-1]  # e.g., Reviewer_N1eK
+        return reviewerID_to_profileID.get(anon, anon)
     return ""
 
 # read original lines
@@ -41,7 +53,7 @@ with open(in_csv, "r", encoding="utf-8-sig", newline="") as f:
 header = lines[0]
 rows = lines[1:]
 
-# add columns to header (quoted, matching your file style)
+# add new columns to ther header
 new_header = header + (
     ',"modality","areas_and_methods"'
     ',"review1_reviewer","review1_research_objectives","review1_methods_and_analysis","review1_impact_and_innovation","review1_overall_recommendation","review1_presentation_modality"'
@@ -65,14 +77,14 @@ for line in rows:
     modality = content_value(c, "modality")
     areas = content_value(c, "areas_and_methods")
 
-    # get all notes in the forum, keep only official reviews
+    # get all notes in the forum, keeping only official reviews
     forum_notes = client.get_all_notes(forum=forum_id)
     official_reviews = [
         n for n in forum_notes
         if any("/-/Official_Review" in inv for inv in (getattr(n, "invitations", None) or []))
     ]
 
-    # stable ordering: oldest first
+    # order: oldest first
     official_reviews.sort(key=lambda n: getattr(n, "cdate", 0) or 0)
 
     # prepare 2 slots for two reviwers
@@ -82,7 +94,7 @@ for line in rows:
             r = official_reviews[i]
             rc = r.content
 
-            slot.append(first_signature(r))
+            slot.append(reviewer_profile_id_from_review(r))
             slot.append(content_value(rc, "research_objectives"))
             slot.append(content_value(rc, "methods_and_analysis"))
             slot.append(content_value(rc, "impact_and_innovation"))
