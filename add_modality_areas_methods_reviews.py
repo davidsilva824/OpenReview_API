@@ -1,6 +1,5 @@
 # pip install openreview-py
 
-
 import openreview
 from urllib.parse import urlparse, parse_qs
 
@@ -14,7 +13,7 @@ client = openreview.api.OpenReviewClient(
 venue_id = "WoProc/2026/Conference"
 
 in_csv = "WoProc 2026 Submission Status.csv"
-out_csv = "WoProc 2026 Submission Status (modality + areas_and_methods + reviews).csv"
+out_csv = "WoProc 2026 Submission Status (modality + areas_and_methods + first_author + reviews).csv"
 
 def forum_to_id(s):
     s = s.strip()
@@ -46,6 +45,9 @@ def reviewer_profile_id_from_review(note):
         return reviewerID_to_profileID.get(anon, anon)
     return ""
 
+def first_author_from_submission_content(content):
+    return content.get("authors", {}).get("value", [""])[0]
+
 # read original lines
 with open(in_csv, "r", encoding="utf-8-sig", newline="") as f:
     lines = f.read().splitlines()
@@ -55,7 +57,7 @@ rows = lines[1:]
 
 # add new columns to ther header
 new_header = header + (
-    ',"modality","areas_and_methods"'
+    ',"first_author","modality","areas_and_methods"'
     ',"review1_reviewer","review1_research_objectives","review1_methods_and_analysis","review1_impact_and_innovation","review1_overall_recommendation","review1_presentation_modality"'
     ',"review2_reviewer","review2_research_objectives","review2_methods_and_analysis","review2_impact_and_innovation","review2_overall_recommendation","review2_presentation_modality"'
 )
@@ -74,6 +76,7 @@ for line in rows:
     # submission fields
     note = client.get_note(forum_id)
     c = note.content
+    first_author = first_author_from_submission_content(c)
     modality = content_value(c, "modality")
     areas = content_value(c, "areas_and_methods")
 
@@ -105,6 +108,7 @@ for line in rows:
 
     new_lines.append(
         line
+        + "," + csv_escape(first_author)
         + "," + csv_escape(modality)
         + "," + csv_escape(areas)
         + "," + ",".join(csv_escape(x) for x in slot)
