@@ -1,6 +1,6 @@
 OpenReview_API
 
-This a method to add the columns 'modality' and 'areas_and_methods' to the export from the "submission status" area in OpenReview: 
+This a method to add the columns 'modality' and 'areas_and_methods', as well as the name of the first author and the reviwer information, to the export from the "submission status" area in OpenReview: 
 https://openreview.net/group?id=WoProc%2F2026%2FConference%2FProgram_Chairs&referrer=%5BHomepage%5D%28%2F%29#submission-status 
 
 Instructions: 
